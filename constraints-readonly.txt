@@ -1,0 +1,10 @@
+pip<20.2  #  pinned per https://github.com/pypa/pip/issues/8757
+
+# specify major package dependencies to ensure independent apps are compatible
+django<3.1
+
+# pin celery until fix released for https://github.com/celery/celery/issues/6285
+celery<4.4.7
+
+# pin django-redis-cache until fix released for https://github.com/sebleier/django-redis-cache/issues/195 
+django-redis-cache==2.1.0

@@ -51,7 +51,7 @@ Management Commands:
 Interactive Demo:
     An interactive demo is available as part of the tests.  Bring the vagrant image
     up and ssh. Start runserver with something like:
-        /vagrant/vagrant/runtox.sh -vv -- python {toxinidir}/manage.py runserver 0.0.0.0:8040
+        /vagrant/vagrant/runtox.sh -vv -e interactive
     Open http://localhost:8040 in your browser and submit the form to see segmented
     uploads in action.
     

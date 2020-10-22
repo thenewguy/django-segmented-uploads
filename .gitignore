@@ -10,5 +10,3 @@ domain.crt
 /.tox
 *.egg-info
 **/test-media/*
-constraints.py
-constraints-readonly.txt
