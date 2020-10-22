@@ -1,0 +1,68 @@
+<!doctype html>
+<html>
+<head>
+    <title>{% block title %}Page Title{% endblock %}</title>
+    {{ form.media }}
+</head>
+<body>
+    {% if not request.session.session_key %}
+        <p>
+            Forcing session for anonymous uploads. This is done for demonstration
+            purposes only: sessions should not be managed by the template during real
+            usage! Page will refresh shortly.
+        </p>
+        <script>
+            $(function(){
+                $.ajax({
+                    url: "{% url 'segmented-upload-endpoint' %}",
+                    method: "PUT",
+                    dataType: "text",
+                    error: function(){
+                        alert("failed to create anonymous upload session");
+                    },
+                    success: function(session){
+                        alert("continue to reload and use anonymous upload session: " + session);
+                        window.location.reload(true);
+                    }
+                });
+            });
+        </script>
+    {% else %}
+        {% if request.path != '/' %}
+            <p><a href="/">return to site root</a></p>
+        {% endif %}
+        {% if request.user.is_authenticated %}
+            <p>You are logged in as: {{ request.user }}.</p>
+        {% else %}
+            <p>
+                You are using an anonymous upload session.
+                <a href="{% url 'admin:login' %}?next={{ request.path|urlencode }}">
+                    You may also log in to upload as a user
+                </a>.
+            </p>
+        {% endif %}
+        {% block content %}Page content{% endblock %}
+        <p>session: {{ request.session.session_key }}</p>
+        <script>
+            $(function(){
+                var $delete = $("<button>Delete session</button>");
+                $('body').append($delete)
+                $delete.one('click', function(){
+                    $.ajax({
+                        url: "{% url 'segmented-upload-endpoint' %}",
+                        method: "DELETE",
+                        dataType: "text",
+                        error: function(){
+                            alert("failed to delete session");
+                        },
+                        success: function(){
+                            alert("session deleted. continue to reload");
+                            window.location.reload(true);
+                        }
+                    });
+                });
+            });
+        </script>
+    {% endif %}
+</body>
+</html>

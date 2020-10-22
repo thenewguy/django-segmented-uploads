@@ -1,0 +1,14 @@
+*.pyc
+.vagrant/
+db.sqlite3
+/.settings
+/.project
+/.pydevproject
+.coverage
+domain.crt
+/vagrant/test-logs/
+/.tox
+*.egg-info
+**/test-media/*
+constraints.py
+constraints-readonly.txt

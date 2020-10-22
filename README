@@ -1,0 +1,57 @@
+1) Add 'segmented_uploads' to INSTALLED_APPS. Ensure `Upload.purge()` is run
+   periodically with the `purge_segmented_uploads` management command via cron, the
+   `purge` celery task available in contrib, or some other approach. There are cases
+   where uploads will remain on disk until removed by this model classmethod.
+
+2) Optional, but recommended (as we are expecting to handle large files).
+   Add `UPLOADS_MATERIALIZE_SYNCHRONOUSLY = False` to settings. Configure
+   a signal receiver for `segmented_uploads.signals.trigger_materialization`
+   that materializes the upload asynchronously (i.e. using a Celery task)
+
+3) The client is expected to upload segments per the procedure of Resumable.js.
+   Test requests using the GET method are supported to check if a segment has already
+   been uploaded.  The client should pass along the hexdigest of the upload
+   content for each segment and the complete file so the server can verify integrity.
+   hexdigest should be passed as the "digest" param and the digest algorithm should
+   be specified as "algorithm" (for example, "md5" or "sha1")
+
+4) Once all segments have been uploaded, submit a post request to the same endpoint
+   as used for uploading segments. Only the segment token should be sent as post
+   data. Poll the endpoint using a request of this form until you receive a truthy
+   response to indicate that the upload has been materialized. The response content
+   is the secret used to authenticate access to the upload.
+
+5) The secret received in the previous step should be posted as the text value for
+   the file input. Note that the html form input type must be altered from type "file"
+   to something more suitable like "hidden" or "text" so the widget can retreive it
+   as POST data.
+
+   
+SETTINGS:
+    - UPLOADS_MATERIALIZE_SYNCHRONOUSLY: Should we handle materialzation automatically
+      in synchronous fashion? default True.
+    - UPLOADS_SEGMENT_LIMIT: integer count for how many segments an upload is allowed
+      defauts to 100
+    - UPLOADS_SEGMENT_MAX_ATTEMPT_COUNT: integer count for how many times the same
+      segment is allowed to be uploaded. defaults to 3
+    - UPLOADS_SEGMENT_ALLOWABLE_SIZE: integer upper limit for byte size of each segment
+      defaults to 10MB.
+    - UPLOADS_REQUIRE_AUTHENTICATION: bool specifying if anonymous users can upload
+      defaults to True (anonymous users are not allowed to upload)
+    - UPLOADS_LINGER_DAYS: integer number of days before upload is eligible for purge
+      defaults to 7
+    - UPLOADS_CACHE_LOCK_REDIS_NAME: string specifying the name of the cache backend
+      to use for redis. (currently expected to be a backend from django-redis-cache)
+      defaults to 'default'
+
+Management Commands:
+    - purge_segmented_uploads: deletes old uploads. configure allowable age with
+      `UPLOADS_LINGER_DAYS`
+
+Interactive Demo:
+    An interactive demo is available as part of the tests.  Bring the vagrant image
+    up and ssh. Start runserver with something like:
+        /vagrant/vagrant/runtox.sh -vv -- python {toxinidir}/manage.py runserver 0.0.0.0:8040
+    Open http://localhost:8040 in your browser and submit the form to see segmented
+    uploads in action.
+    
